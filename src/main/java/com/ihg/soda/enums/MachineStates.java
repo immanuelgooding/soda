@@ -1,0 +1,12 @@
+package com.ihg.soda.enums;
+
+public enum MachineStates {
+	AWAIT_PAYMENT, 
+	CARD_SWIPED, 
+	CARD_READ_ERROR, 
+	PAYMENT_COMPLETE, 
+	HAS_CURRENCY, 
+	CHANGE_DUE,
+	DISPENSE_CURRENCY, 
+	DISPENSE_PRODUCT;
+}

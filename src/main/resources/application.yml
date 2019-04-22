@@ -1,0 +1,34 @@
+logging:
+  level:
+    root: INFO
+    com.ihg.soda: info
+#    org.springframework: info
+
+spring:
+  mvc:
+    view:
+      prefix: /WEB-INF/jsp/
+      suffix: .jsp
+
+soda-machine:
+  currency-code: USD
+  max-count: 10
+  queues: 5
+  
+inventory:
+  beverages:
+  - brand: coke-zero
+    container-type: can
+    upc: 12345
+  - brand: coke-zero
+    container-type: bottle
+    upc: 54321
+  - brand: fanta
+    container-type: bottle
+    upc: 23456
+  - brand: seven-up
+    container-type: bottle
+    upc: 34567
+  - brand: seven-up
+    container-type: can
+    upc: 76543
