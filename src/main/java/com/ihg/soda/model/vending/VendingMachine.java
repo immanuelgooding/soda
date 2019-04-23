@@ -56,7 +56,9 @@ public abstract class VendingMachine<T extends DispensableProduct, U>
 	}
 	
 	public final void dispenseChange() {
-		log.info("Dispensed {}{}", defaultCurrency.getSymbol(), changeDue);
+		if(changeDue.compareTo(BigDecimal.ZERO) == 1) {
+			log.info("Dispensed {}{}", defaultCurrency.getSymbol(), changeDue);
+		}
 		changeDue = null;
 	}
 	

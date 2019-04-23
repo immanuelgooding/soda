@@ -29,20 +29,28 @@ import com.ihg.soda.model.web.BeverageRequestModel;
 @RequestMapping("drink")
 public class SodaMachineController {
 	
-	@GetMapping("/select")
+	@GetMapping("/buy")
 	public String getSodaMachine(ModelMap model) {
 		
 		model.addAttribute("brands", ProductBrands.values());
 		model.addAttribute("conatinerTypes", LiquidContainerTypes.values());
 		model.addAttribute("denominations", Denominations.values());
 		
+		List<Integer> denominationQuantity = 
+				IntStream.rangeClosed(1, 5).collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+		model.addAttribute("denominationQuantity", denominationQuantity);
+		
 		model.addAttribute("beverageRequestModel", new BeverageRequestModel());
 		
 		return "sodaMachineScreen";
 	}
 	
-	@PostMapping("/select")
+	@PostMapping("/buy")
 	public ResponseEntity<BeverageResponse> postSodaMachine(@ModelAttribute BeverageRequestModel model) throws URISyntaxException {
+		if(null == model.getDenomination() || null == model.getDenominationQuantity()) {
+			model.setDenominationQuantity(new Integer(0));
+		}
+		
 		List<Denominations> cash = new ArrayList<>();
 		IntStream.range(0, model.getDenominationQuantity()).forEach(i -> cash.add(model.getDenomination()));
 		

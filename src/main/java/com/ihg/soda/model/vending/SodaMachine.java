@@ -39,6 +39,7 @@ public class SodaMachine extends VendingMachine<Beverage, BeverageDetail> {
 			break;
 		case DISPENSE_CURRENCY:
 			dispenseCurrency();
+			setMachineState(MachineStates.AWAIT_PAYMENT);
 			break;
 		case CARD_SWIPED:
 			if(null != getCurrencyInserted()) {
@@ -59,6 +60,9 @@ public class SodaMachine extends VendingMachine<Beverage, BeverageDetail> {
 			break;
 		case PAYMENT_COMPLETE:
 			setMachineState(MachineStates.DISPENSE_PRODUCT);
+			break;
+		case OUT_OF_BEVERAGE:
+			setMachineState(MachineStates.DISPENSE_CURRENCY);
 			break;
 		default:
 			displayWelcomeMessage();

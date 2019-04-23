@@ -2,70 +2,131 @@
 <html>
 <head>
 <title>Soda Pop Vending Machine</title>
+
+<style type="text/css">
+
+body {
+	font-family: monospace;
+}
+
+#price {
+	font-size: -webkit-xxx-large;
+    color: turquoise;
+}
+
+label.dateEntryGuide {
+	margin-top: 15px;
+    display: inline-block;
+    width: 100%;
+    font-weight: bolder;
+}
+
+tr.optionsOffered span {
+    display: table-cell;
+}
+
+tr.optionsOffered span input {
+    vertical-align: bottom;
+}
+
+</style>
+
+<script type="text/javascript">
+	
+	function ejectCurrency() {
+		var denom = document.getElementsByName("denomination");
+		var denomQuantity = document.getElementsByName("denominationQuantity");
+		
+		var denomSelected;
+		var denomQuantitySelected;
+		
+		for (var i = 0; i < denom.length; i++)
+	    {
+	        var currentDenom = denom[i];
+			if (currentDenom.checked)
+	        {
+				denomSelected = currentDenom;
+	        }
+	    }
+		
+		for (var i = 0; i < denomQuantity.length; i++)
+	    {
+	        var currentDenomQuantity = denomQuantity[i];
+			if (currentDenomQuantity.checked)
+	        {
+				denomQuantitySelected = currentDenomQuantity;
+	        }
+	    }
+		
+		if(denomSelected && denomQuantitySelected) {
+			denomSelected.checked = false;
+			denomQuantitySelected.checked = false;
+		}
+		
+	}
+</script>
+
 </head>
 <body>
-	<form:form method="post" action="/drink/select" modelAttribute="beverageRequestModel">
+	<div id="price">All Beverages: $1.00 <br>(Today Only)</div>
+	<form:form method="post" action="/drink/buy" modelAttribute="beverageRequestModel">
         <table>
         <tr>
         <td>
-        <form:label path = "brand">Select Beverage</form:label>
+        <form:label path = "brand" cssClass="dateEntryGuide">Choose Beverage</form:label>
         </td>
+        </tr>
+        <tr class="optionsOffered">
         <td>
-		<form:select path="brand">
-		    <form:options items="${brands}" />
-		</form:select>
+		<form:radiobuttons path="brand" />
 		</td>
         </tr>
         
         <tr>
         <td>
-        <form:label path = "containerType">Select Beverage Packaging</form:label>
+        <form:label path = "containerType" cssClass="dateEntryGuide">Choose Beverage Packaging</form:label>
         </td>
+        </tr>
+        <tr class="optionsOffered">
         <td>
-		<form:select path="containerType">
-		    <form:options items="${containerTypes}" />
-		</form:select>
+		<form:radiobuttons path="containerType" />
 		</td>
 		</tr>
 		
 		<tr>
 		<td>
-        <form:label path = "denomination">Select Cash Denomination</form:label>
+        <form:label path = "denomination" cssClass="dateEntryGuide">Choose Cash Denomination</form:label>
         </td>
+        </tr>
+        <tr class="optionsOffered">
         <td>
-		<form:select path="denomination">
-		    <form:options items="${denominations}" />
-		</form:select>
+		<form:radiobuttons path="denomination" />
 		</td>
 		</tr>
 		
 		<tr>
 		<td>
-        <form:label path = "denominationQuantity">Enter Denomination Quantity</form:label>
+        <form:label path = "denominationQuantity" cssClass="dateEntryGuide">Choose Denomination Quantity</form:label>
         </td>
-		<td><form:radiobutton path = "denominationQuantity" value = "1" label = "1" /></td>
-        <td><form:radiobutton path = "denominationQuantity" value = "2" label = "2" /></td>
-        <td><form:radiobutton path = "denominationQuantity" value = "3" label = "3" /></td>
-        <td><form:radiobutton path = "denominationQuantity" value = "4" label = "4" /></td>
-        <td><form:radiobutton path = "denominationQuantity" value = "5" label = "5" /></td>
+        </tr>
+        <tr class="optionsOffered">
+		<td>
+		<form:radiobuttons path="denominationQuantity" items="${denominationQuantity}" />
+		</td>
 		</tr>
 		
 		<tr>
-        <td><form:label path = "cardName">Card Holder</form:label></td>
-        <td><form:input path = "cardName" /></td>
-        <td><form:label path = "cardNumber">Card Number</form:label></td>
-        <td><form:input path = "cardNumber" /></td>
-        <td><form:label path = "expiryMonth">Expiration Month</form:label></td>
-        <td><form:input path = "expiryMonth" /></td>
-        <td><form:label path = "expiryYear">Expiration Year</form:label></td>
-        <td><form:input path = "expiryYear" /></td>
-        <td><form:label path = "provider">Card Provider (e.g. MasterCard, Visa)</form:label></td>
-        <td><form:input path = "provider" /></td>
+        <td><form:label path = "provider" cssClass="dateEntryGuide">Enter Card Provider</form:label></td>
+        </tr>
+        <tr>
+        <td><form:input path="provider" placeholder=" mastercard, amex, etc."/></td>
 		</tr>
         
         <tr>
         <td>
-        <input type="submit" />
+        <button type="button" onclick="ejectCurrency()">Eject</button>
+        <button>Purchase</button>
+        <button type="reset">Reset</button>
         </td>
         </tr>
         </table>

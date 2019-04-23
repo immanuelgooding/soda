@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.ihg.soda.config.ProductConfigurationProperties;
 import com.ihg.soda.enums.Denominations;
+import com.ihg.soda.enums.LiquidContainerTypes;
 import com.ihg.soda.enums.MachineStates;
 import com.ihg.soda.enums.PaymentTypes;
 import com.ihg.soda.enums.ProductBrands;
@@ -100,7 +101,10 @@ public class MachineManager {
 	 */
 	private void stockVendingMachine(Iterable<Beverage> beverageInventory) {
 		Optional.ofNullable(sodaMachine.getProductStock()).ifPresent(stock -> stock.clear());
+		
+		EnumSet<ProductStatuses> stockableProductStatuses = EnumSet.of(ProductStatuses.UNSTOCKED, ProductStatuses.STOCKED);
 		List<Beverage> beverageList = StreamSupport.stream(beverageInventory.spliterator(), false)
+				.filter(bev -> stockableProductStatuses.contains(bev.getProductStatus()))
 				.collect(Collectors.toList());
 		
 		List<Beverage> stockedBeverages = new ArrayList<>();
@@ -130,7 +134,7 @@ public class MachineManager {
 		
 		if(null == cash && null == chargeCard) {
 			sodaMachine.setMachineState(MachineStates.AWAIT_PAYMENT);
-			return new BeverageResponse();
+			return new BeverageResponse("Please insert at least one currency or swipe charge card to purchase a drink");
 		}
 		
 		if(null != cash) {
@@ -155,15 +159,24 @@ public class MachineManager {
 				return new BeverageResponse("Unable to read card");
 			}
 		}
+		
+		ProductBrands brand = request.getBrand();
+		LiquidContainerTypes containerType = request.getContainerType();
+		if(null == brand || null == containerType) {
+			sodaMachine.setMachineState(MachineStates.AWAIT_PAYMENT);
+			sodaMachine.setMachineState(MachineStates.DISPENSE_CURRENCY);
+			return new BeverageResponse("Please choose a beverage brand and its packaging");
+		}
 		// end validations
 		
 		BeverageDetail productRequested = BeverageDetail.builder()
-				.brand(request.getBrand())
-				.containerType(request.getContainerType())
+				.brand(brand)
+				.containerType(containerType)
 				.build();
 		
 		LinkedList<Beverage> selectedBeverageQueue = sodaMachine.getProductStock().get(productRequested);
 		if(null == selectedBeverageQueue || selectedBeverageQueue.isEmpty()) {
+			sodaMachine.setMachineState(MachineStates.OUT_OF_BEVERAGE);
 			return new BeverageResponse("Sorry, out of your selection");
 		}
 		
@@ -180,8 +193,13 @@ public class MachineManager {
 				return buildBeverageResponse(productRequested, selectedBeverageQueue, Optional.of(difference), PaymentTypes.CASH);
 			}
 		}
-		String message = "Price is ".concat(productPrice.toString())
-				.concat(". You gave ").concat(cashInserted.toString())
+		String currencySymbol = sodaMachine.getDefaultCurrency().getSymbol();
+		String message = "Price is "
+				.concat(currencySymbol)
+				.concat(productPrice.toString())
+				.concat(". You gave ")
+				.concat(currencySymbol)
+				.concat(cashInserted.toString())
 				.concat(" No drink for you.");
 		return new BeverageResponse(message);
 	}
