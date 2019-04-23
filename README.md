@@ -4,7 +4,7 @@ Soda machine simulation
 
 How to run:
 Via Browser
-http://localhost:8080/drink/select
+http://localhost:8080/drink/buy
 
 Some helpful bits:
 http://localhost:8080/
