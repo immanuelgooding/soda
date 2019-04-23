@@ -1,3 +1,9 @@
+Soda is a simple demo project that simulates the interaction with a vending (soda pop/beverage) machine.
+
+The project utilizes [Spring Boot](https://spring.io/projects/spring-boot). 
+
+Import it into your favorite IDE and use the following guide to get started.
+
 # Getting Started Guide
 
 
