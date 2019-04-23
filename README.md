@@ -1,85 +1,99 @@
-# soda
-Soda machine simulation
+# Getting Started Guide
 
 
-How to run:
-Via Browser
+## How To Run
+1. **_User Interface (web browser)_**
+
+```
 http://localhost:8080/drink/buy
+```
+  - ###### Some helpful bits:
+    - ###### REST Data Repositories
+    ```
+    http://localhost:8080/
+    ```
+  
+    - ###### Data Store Interface
+    ```
+    http://localhost:8080/h2-console
+    ```
 
-Some helpful bits:
-http://localhost:8080/
-http://localhost:8080/h2-console
+2. **_REST API (Postman)_**
+  - ###### HTTP Post
+    ```
+    localhost:8080/drink/purchase
+    ```
+    **_Request body samples_**
+    ```
+    {
+      "brand": "COKE_ZERO",
+      "containerType": "BOTTLE",
+      "cash": [
+        "QUARTER",
+        "QUARTER",
+        "QUARTER",
+        "QUARTER",
+        "QUARTER"
+      ]
+    }
 
-Via PostMAN
-POST to localhost:8080/drink/purchase
-Request Body Samples:
-{
-  "brand": "COKE_ZERO",
-  "containerType": "BOTTLE",
-  "cash": [
-    "QUARTER",
-    "QUARTER",
-    "QUARTER",
-    "QUARTER",
-    "QUARTER"
-  ]
-}
+    {
+      "brand": "COKE_ZERO",
+      "containerType": "BOTTLE",
+      "cash": [
+        "QUARTER",
+        "QUARTER",
+        "QUARTER",
+        "QUARTER"
+      ]
+    }
 
-{
-  "brand": "COKE_ZERO",
-  "containerType": "BOTTLE",
-  "cash": [
-    "QUARTER",
-    "QUARTER",
-    "QUARTER",
-    "QUARTER"
-  ]
-}
+    {
+      "brand": "COKE_ZERO",
+      "containerType": "BOX",
+      "cash": [
+        "QUARTER",
+        "QUARTER",
+        "QUARTER",
+        "QUARTER"
+      ]
+    }
+    ```
+    - ###### POST multiple forms of payment (e.g. add a charge card)
+      ```
+      {
+        "brand": "COKE_ZERO",
+        "containerType": "CAN",
+        "cash": [
+          "QUARTER",
+          "QUARTER",
+          "QUARTER",
+          "QUARTER"
+        ],
+        "chargeCard": {
+          "name": "Thirsty Person",
+          "cardNumber": 1111222233334444,
+          "expiryMonth": "03",
+          "expiryYear": 2030,
+          "provider": "VISA"
+        }
+      }
 
-{
-  "brand": "COKE_ZERO",
-  "containerType": "BOX",
-  "cash": [
-    "QUARTER",
-    "QUARTER",
-    "QUARTER",
-    "QUARTER"
-  ]
-}
-
-Add a charge card...
-{
-  "brand": "COKE_ZERO",
-  "containerType": "CAN",
-  "cash": [
-    "QUARTER",
-    "QUARTER",
-    "QUARTER",
-    "QUARTER"
-  ],
-  "chargeCard": {
-    "name": "Thirsty Person",
-    "cardNumber": 1111222233334444,
-    "expiryMonth": "03",
-    "expiryYear": 2030,
-    "provider": "VISA"
-  }
-}
-
-{
-  "brand": "COKE_ZERO",
-  "containerType": "CAN",
-  "cash": [
-    "QUARTER",
-    "QUARTER",
-    "QUARTER",
-    "QUARTER"
-  ],
-  "chargeCard": {
-    "name": "Thirsty Person",
-    "cardNumber": 1111222233334444,
-    "expiryMonth": "03",
-    "expiryYear": 2030,
-    "provider": "DINERS_CLUB_PLATINUM"
-  }
-}
+      {
+        "brand": "COKE_ZERO",
+        "containerType": "CAN",
+        "cash": [
+          "QUARTER",
+          "QUARTER",
+          "QUARTER",
+          "QUARTER"
+        ],
+        "chargeCard": {
+          "name": "Thirsty Person",
+          "cardNumber": 1111222233334444,
+          "expiryMonth": "03",
+          "expiryYear": 2030,
+          "provider": "DINERS_CLUB_PLATINUM"
+        }
+      }
+      ```
