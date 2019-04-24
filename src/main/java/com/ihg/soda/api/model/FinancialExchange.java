@@ -1,4 +1,4 @@
-package com.ihg.soda.model;
+package com.ihg.soda.api.model;
 
 import java.math.BigDecimal;
 import java.util.Currency;

@@ -1,4 +1,4 @@
-package com.ihg.soda.model.vending;
+package com.ihg.soda.api.vending;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -7,8 +7,8 @@ import java.util.Currency;
 import java.util.LinkedList;
 import java.util.Map;
 
+import com.ihg.soda.api.model.entity.DispensableProduct;
 import com.ihg.soda.enums.MachineStates;
-import com.ihg.soda.model.entity.DispensableProduct;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

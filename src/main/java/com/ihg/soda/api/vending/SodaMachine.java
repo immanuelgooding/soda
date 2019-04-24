@@ -1,12 +1,12 @@
-package com.ihg.soda.model.vending;
+package com.ihg.soda.api.vending;
 
 import java.beans.PropertyChangeEvent;
 import java.math.BigDecimal;
 
+import com.ihg.soda.api.model.BeverageDetail;
+import com.ihg.soda.api.model.entity.Beverage;
 import com.ihg.soda.enums.MachineStates;
 import com.ihg.soda.enums.ProductTypes;
-import com.ihg.soda.model.BeverageDetail;
-import com.ihg.soda.model.entity.Beverage;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

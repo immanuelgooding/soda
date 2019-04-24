@@ -6,10 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.ihg.soda.model.BeverageDetail;
-import com.ihg.soda.model.entity.Beverage;
-import com.ihg.soda.model.vending.SodaMachine;
-import com.ihg.soda.model.vending.VendingMachine;
+import com.ihg.soda.api.model.BeverageDetail;
+import com.ihg.soda.api.model.entity.Beverage;
+import com.ihg.soda.api.vending.SodaMachine;
+import com.ihg.soda.api.vending.VendingMachine;
 
 @Configuration
 public class SodaMachineConfiguration {

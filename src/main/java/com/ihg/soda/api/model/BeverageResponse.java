@@ -1,4 +1,4 @@
-package com.ihg.soda.model;
+package com.ihg.soda.api.model;
 
 import javax.validation.constraints.NotNull;
 

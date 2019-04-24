@@ -1,4 +1,4 @@
-package com.ihg.soda.model.service;
+package com.ihg.soda.api.service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -17,6 +17,16 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.ihg.soda.api.model.BeverageDetail;
+import com.ihg.soda.api.model.BeverageRequest;
+import com.ihg.soda.api.model.BeverageResponse;
+import com.ihg.soda.api.model.ChargeCard;
+import com.ihg.soda.api.model.FinancialExchange;
+import com.ihg.soda.api.model.entity.Beverage;
+import com.ihg.soda.api.model.entity.ProductTransaction;
+import com.ihg.soda.api.repository.BeverageRepository;
+import com.ihg.soda.api.repository.ProductTransactionRepository;
+import com.ihg.soda.api.vending.VendingMachine;
 import com.ihg.soda.config.ProductConfigurationProperties;
 import com.ihg.soda.enums.Denominations;
 import com.ihg.soda.enums.LiquidContainerTypes;
@@ -24,16 +34,7 @@ import com.ihg.soda.enums.MachineStates;
 import com.ihg.soda.enums.PaymentTypes;
 import com.ihg.soda.enums.ProductBrands;
 import com.ihg.soda.enums.ProductStatuses;
-import com.ihg.soda.model.BeverageDetail;
-import com.ihg.soda.model.BeverageRequest;
-import com.ihg.soda.model.BeverageResponse;
-import com.ihg.soda.model.ChargeCard;
-import com.ihg.soda.model.FinancialExchange;
-import com.ihg.soda.model.entity.Beverage;
-import com.ihg.soda.model.entity.ProductTransaction;
-import com.ihg.soda.model.repository.BeverageRepository;
-import com.ihg.soda.model.repository.ProductTransactionRepository;
-import com.ihg.soda.model.vending.VendingMachine;
+import com.ihg.soda.exception.VendingMachineException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -123,31 +124,78 @@ public class MachineManager {
 	}
 
 	public BeverageResponse processRequest(BeverageRequest request) {
-		boolean processChargeCard = false;
-		boolean chargeCardSupported = false;
-
-		//begin validations
+		boolean shouldProcessChargeCard = false;
 		List<Denominations> cash = request.getCash();
-		BigDecimal cashInserted = BigDecimal.ZERO;
-		
+		BigDecimal totalCashInserted = BigDecimal.ZERO;
 		ChargeCard chargeCard = request.getChargeCard();
 		
-		if(null == cash && null == chargeCard) {
+		handleSelectionMadeWithNoPayment(cash, chargeCard);
+		totalCashInserted = processCashInput(cash, totalCashInserted);
+		shouldProcessChargeCard = processChargeCardInput(shouldProcessChargeCard, chargeCard);
+		
+		ProductBrands brand = request.getBrand();
+		LiquidContainerTypes containerType = request.getContainerType();
+		BeverageDetail productRequested = buildProductRequested(brand, containerType);
+		
+		LinkedList<Beverage> selectedBeverageQueue = sodaMachine.getProductStock().get(productRequested);
+		handleOutOfBeverage(selectedBeverageQueue);
+		BigDecimal productPrice = selectedBeverageQueue.stream().findAny().get().getPrice().getAmount();
+		handleNotEnoughCashTendered(totalCashInserted, productPrice);
+		
+		PaymentTypes paymentType = PaymentTypes.CASH;
+		if(shouldProcessChargeCard) {
+			paymentType = PaymentTypes.valueOf(sodaMachine.getCardSwiped());
+		} else {
+			if(totalCashInserted.compareTo(productPrice) > -1) {
+				BigDecimal difference = productPrice.subtract(totalCashInserted).abs();
+				sodaMachine.setChangeDue(difference);
+				sodaMachine.setMachineState(MachineStates.CHANGE_DUE);
+				return buildBeverageResponse(productRequested, selectedBeverageQueue, Optional.of(difference), paymentType);
+			}
+		}
+		return buildBeverageResponse(productRequested, selectedBeverageQueue, Optional.empty(), paymentType);
+	}
+
+	private void handleNotEnoughCashTendered(BigDecimal totalCashInserted, BigDecimal productPrice) {
+		String currencySymbol = sodaMachine.getDefaultCurrency().getSymbol();
+		StringBuffer exceptionMessage = new StringBuffer("Price is ")
+		.append(currencySymbol)
+		.append(productPrice.toString())
+		.append(". You gave ")
+		.append(currencySymbol)
+		.append(totalCashInserted.toString())
+		.append(" No drink for you.");
+		
+		throw new VendingMachineException(exceptionMessage.toString());
+	}
+
+	private void handleOutOfBeverage(LinkedList<Beverage> selectedBeverageQueue) {
+		if(null == selectedBeverageQueue || selectedBeverageQueue.isEmpty()) {
+			sodaMachine.setMachineState(MachineStates.OUT_OF_BEVERAGE);
+			throw new VendingMachineException("Sorry, out of your selection");
+		}
+	}
+
+	private BeverageDetail buildProductRequested(ProductBrands brand, LiquidContainerTypes containerType) {
+		if(null == brand || null == containerType) {
+			sodaMachine.setMachineState(MachineStates.DISPENSE_CURRENCY);
 			sodaMachine.setMachineState(MachineStates.AWAIT_PAYMENT);
-			return new BeverageResponse("Please insert at least one currency or swipe charge card to purchase a drink");
+			throw new VendingMachineException("Please choose a beverage brand and its packaging");
 		}
 		
-		if(null != cash) {
-			cashInserted = cash.stream().map(Denominations::getValue).reduce(cashInserted, BigDecimal::add);
-			sodaMachine.setCurrencyInserted(cashInserted);
-			sodaMachine.setMachineState(MachineStates.HAS_CURRENCY);
-		}
-		
+		BeverageDetail productRequested = BeverageDetail.builder()
+				.brand(brand)
+				.containerType(containerType)
+				.build();
+		return productRequested;
+	}
+
+	private boolean processChargeCardInput(boolean processChargeCard, ChargeCard chargeCard) {
 		if(null != chargeCard) {
 			String cardProvider = chargeCard.getProvider().toUpperCase();
 			sodaMachine.setCardSwiped(cardProvider);
 			sodaMachine.setMachineState(MachineStates.CARD_SWIPED);
-			chargeCardSupported = EnumSet.allOf(PaymentTypes.class).stream()
+			boolean chargeCardSupported = EnumSet.allOf(PaymentTypes.class).stream()
 					.map(PaymentTypes::toString)
 					.collect(Collectors.toList())
 					.contains(cardProvider);
@@ -156,54 +204,28 @@ public class MachineManager {
 				processChargeCard = true;
 			} else {
 				sodaMachine.setMachineState(MachineStates.CARD_READ_ERROR);
-				return new BeverageResponse("Unable to read card");
+				throw new VendingMachineException("Unable to read card");
 			}
 		}
-		
-		ProductBrands brand = request.getBrand();
-		LiquidContainerTypes containerType = request.getContainerType();
-		if(null == brand || null == containerType) {
-			sodaMachine.setMachineState(MachineStates.AWAIT_PAYMENT);
-			sodaMachine.setMachineState(MachineStates.DISPENSE_CURRENCY);
-			return new BeverageResponse("Please choose a beverage brand and its packaging");
-		}
-		// end validations
-		
-		BeverageDetail productRequested = BeverageDetail.builder()
-				.brand(brand)
-				.containerType(containerType)
-				.build();
-		
-		LinkedList<Beverage> selectedBeverageQueue = sodaMachine.getProductStock().get(productRequested);
-		if(null == selectedBeverageQueue || selectedBeverageQueue.isEmpty()) {
-			sodaMachine.setMachineState(MachineStates.OUT_OF_BEVERAGE);
-			return new BeverageResponse("Sorry, out of your selection");
-		}
-		
-		BigDecimal productPrice = selectedBeverageQueue.stream().findAny().get().getPrice().getAmount();
-		
-		if(processChargeCard) {
-			String cardSwiped = sodaMachine.getCardSwiped();
-			return buildBeverageResponse(productRequested, selectedBeverageQueue, Optional.empty(), PaymentTypes.valueOf(cardSwiped ));
-		} else {
-			if(cashInserted.compareTo(productPrice) > -1) {
-				BigDecimal difference = productPrice.subtract(cashInserted).abs();
-				sodaMachine.setChangeDue(difference);
-				sodaMachine.setMachineState(MachineStates.CHANGE_DUE);
-				return buildBeverageResponse(productRequested, selectedBeverageQueue, Optional.of(difference), PaymentTypes.CASH);
-			}
-		}
-		String currencySymbol = sodaMachine.getDefaultCurrency().getSymbol();
-		String message = "Price is "
-				.concat(currencySymbol)
-				.concat(productPrice.toString())
-				.concat(". You gave ")
-				.concat(currencySymbol)
-				.concat(cashInserted.toString())
-				.concat(" No drink for you.");
-		return new BeverageResponse(message);
+		return processChargeCard;
 	}
-	
+
+	private BigDecimal processCashInput(List<Denominations> cash, BigDecimal cashInserted) {
+		if(null != cash) {
+			cashInserted = cash.stream().map(Denominations::getValue).reduce(cashInserted, BigDecimal::add);
+			sodaMachine.setCurrencyInserted(cashInserted);
+			sodaMachine.setMachineState(MachineStates.HAS_CURRENCY);
+		}
+		return cashInserted;
+	}
+
+	private void handleSelectionMadeWithNoPayment(List<Denominations> cash, ChargeCard chargeCard) {
+		if(null == cash && null == chargeCard) {
+			String message = "Please insert at least one currency or swipe charge card to purchase a drink";
+			throw new VendingMachineException(message);
+		}
+	}
+
 	private BeverageResponse buildBeverageResponse(BeverageDetail productDetail, LinkedList<Beverage> beverageQueue, 
 			Optional<BigDecimal> calculatedChange, PaymentTypes paymentType) {
 		

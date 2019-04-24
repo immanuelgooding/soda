@@ -1,4 +1,4 @@
-package com.ihg.soda.model;
+package com.ihg.soda.api.model;
 
 import com.ihg.soda.enums.LiquidContainerTypes;
 import com.ihg.soda.enums.ProductBrands;

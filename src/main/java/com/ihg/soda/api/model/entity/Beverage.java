@@ -1,4 +1,4 @@
-package com.ihg.soda.model.entity;
+package com.ihg.soda.api.model.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

@@ -1,4 +1,4 @@
-package com.ihg.soda.model;
+package com.ihg.soda.api.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

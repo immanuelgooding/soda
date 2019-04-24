@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
-import com.ihg.soda.model.BeverageDetail;
+import com.ihg.soda.api.model.BeverageDetail;
 
 import lombok.Data;
 

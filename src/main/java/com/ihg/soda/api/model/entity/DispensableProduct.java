@@ -1,4 +1,4 @@
-package com.ihg.soda.model.entity;
+package com.ihg.soda.api.model.entity;
 
 import java.time.LocalDate;
 
@@ -17,9 +17,9 @@ import javax.validation.constraints.NotNull;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.ihg.soda.api.model.FinancialExchange;
 import com.ihg.soda.enums.ProductBrands;
 import com.ihg.soda.enums.ProductStatuses;
-import com.ihg.soda.model.FinancialExchange;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.ihg.soda.model.entity;
+package com.ihg.soda.api.model.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,8 +19,8 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.ihg.soda.model.BeverageDetail;
-import com.ihg.soda.model.FinancialExchange;
+import com.ihg.soda.api.model.BeverageDetail;
+import com.ihg.soda.api.model.FinancialExchange;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

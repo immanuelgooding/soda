@@ -1,4 +1,4 @@
-package com.ihg.soda.model.controller;
+package com.ihg.soda.web.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.client.RestTemplate;
 
+import com.ihg.soda.api.model.BeverageRequest;
+import com.ihg.soda.api.model.BeverageResponse;
+import com.ihg.soda.api.model.ChargeCard;
 import com.ihg.soda.enums.Denominations;
 import com.ihg.soda.enums.LiquidContainerTypes;
 import com.ihg.soda.enums.ProductBrands;
-import com.ihg.soda.model.BeverageRequest;
-import com.ihg.soda.model.BeverageResponse;
-import com.ihg.soda.model.ChargeCard;
-import com.ihg.soda.model.web.BeverageRequestModel;
+import com.ihg.soda.web.model.BeverageRequestModel;
 
 @Controller
 @RequestMapping("drink")
@@ -78,9 +78,7 @@ public class SodaMachineController {
 			     .accept(MediaType.APPLICATION_JSON)
 			     .body(beverageRequest);
 		
-		 RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<BeverageResponse> response = restTemplate .exchange(request, BeverageResponse.class);
-		 return response;
+		return new RestTemplate().exchange(request, BeverageResponse.class);
 		
 	}
 
