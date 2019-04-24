@@ -2,6 +2,7 @@ package com.ihg.soda.api.vending;
 
 import java.beans.PropertyChangeEvent;
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import com.ihg.soda.api.model.BeverageDetail;
 import com.ihg.soda.api.model.entity.Beverage;
@@ -36,15 +37,13 @@ public class SodaMachine extends VendingMachine<Beverage, BeverageDetail> {
 			break;
 		case CARD_READ_ERROR:
 			displayCardReadErrorMessage();
+			checkCurrencyInsertedExceptionalState();
 			break;
 		case DISPENSE_CURRENCY:
 			dispenseCurrency();
 			setMachineState(MachineStates.AWAIT_PAYMENT);
 			break;
 		case CARD_SWIPED:
-			if(null != getCurrencyInserted()) {
-				dispenseCurrency();
-			}
 			displayCardInfo();
 			break;
 		case DISPENSE_PRODUCT:
@@ -62,11 +61,19 @@ public class SodaMachine extends VendingMachine<Beverage, BeverageDetail> {
 			setMachineState(MachineStates.DISPENSE_PRODUCT);
 			break;
 		case OUT_OF_BEVERAGE:
-			setMachineState(MachineStates.DISPENSE_CURRENCY);
+			checkCurrencyInsertedExceptionalState();
 			break;
 		default:
 			displayWelcomeMessage();
 		}
+	}
+
+	private void checkCurrencyInsertedExceptionalState() {
+		Optional.ofNullable(getCurrencyInserted()).ifPresent(currencyInserted -> {
+			if(currencyInserted.compareTo(BigDecimal.ZERO) == 1) {
+				setMachineState(MachineStates.DISPENSE_CURRENCY);
+			}
+		});
 	}
 	
 }

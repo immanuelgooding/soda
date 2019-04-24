@@ -124,14 +124,13 @@ public class MachineManager {
 	}
 
 	public BeverageResponse processRequest(BeverageRequest request) {
-		boolean shouldProcessChargeCard = false;
 		List<Denominations> cash = request.getCash();
-		BigDecimal totalCashInserted = BigDecimal.ZERO;
 		ChargeCard chargeCard = request.getChargeCard();
 		
+		PaymentTypes paymentType = PaymentTypes.CASH;
+		BigDecimal totalCashInserted = processCashInput(cash);
 		handleSelectionMadeWithNoPayment(cash, chargeCard);
-		totalCashInserted = processCashInput(cash, totalCashInserted);
-		shouldProcessChargeCard = processChargeCardInput(shouldProcessChargeCard, chargeCard);
+		boolean shouldProcessChargeCard = processChargeCardInput(chargeCard);
 		
 		ProductBrands brand = request.getBrand();
 		LiquidContainerTypes containerType = request.getContainerType();
@@ -140,23 +139,28 @@ public class MachineManager {
 		LinkedList<Beverage> selectedBeverageQueue = sodaMachine.getProductStock().get(productRequested);
 		handleOutOfBeverage(selectedBeverageQueue);
 		BigDecimal productPrice = selectedBeverageQueue.stream().findAny().get().getPrice().getAmount();
-		handleNotEnoughCashTendered(totalCashInserted, productPrice);
 		
-		PaymentTypes paymentType = PaymentTypes.CASH;
 		if(shouldProcessChargeCard) {
 			paymentType = PaymentTypes.valueOf(sodaMachine.getCardSwiped());
+			if(totalCashInserted.compareTo(BigDecimal.ZERO) == 1) {
+				sodaMachine.setMachineState(MachineStates.DISPENSE_CURRENCY);
+			}
 		} else {
 			if(totalCashInserted.compareTo(productPrice) > -1) {
 				BigDecimal difference = productPrice.subtract(totalCashInserted).abs();
 				sodaMachine.setChangeDue(difference);
 				sodaMachine.setMachineState(MachineStates.CHANGE_DUE);
 				return buildBeverageResponse(productRequested, selectedBeverageQueue, Optional.of(difference), paymentType);
+			} else {
+				handleNotEnoughCashTendered(totalCashInserted, productPrice);
 			}
 		}
 		return buildBeverageResponse(productRequested, selectedBeverageQueue, Optional.empty(), paymentType);
 	}
 
 	private void handleNotEnoughCashTendered(BigDecimal totalCashInserted, BigDecimal productPrice) {
+		sodaMachine.setMachineState(MachineStates.DISPENSE_CURRENCY);
+		
 		String currencySymbol = sodaMachine.getDefaultCurrency().getSymbol();
 		StringBuffer exceptionMessage = new StringBuffer("Price is ")
 		.append(currencySymbol)
@@ -190,7 +194,8 @@ public class MachineManager {
 		return productRequested;
 	}
 
-	private boolean processChargeCardInput(boolean processChargeCard, ChargeCard chargeCard) {
+	private boolean processChargeCardInput(ChargeCard chargeCard) {
+		boolean processChargeCard = false;
 		if(null != chargeCard) {
 			String cardProvider = chargeCard.getProvider().toUpperCase();
 			sodaMachine.setCardSwiped(cardProvider);
@@ -210,7 +215,8 @@ public class MachineManager {
 		return processChargeCard;
 	}
 
-	private BigDecimal processCashInput(List<Denominations> cash, BigDecimal cashInserted) {
+	private BigDecimal processCashInput(List<Denominations> cash) {
+		BigDecimal cashInserted = BigDecimal.ZERO;
 		if(null != cash) {
 			cashInserted = cash.stream().map(Denominations::getValue).reduce(cashInserted, BigDecimal::add);
 			sodaMachine.setCurrencyInserted(cashInserted);
@@ -262,8 +268,6 @@ public class MachineManager {
 				.build();
 		
 		sodaMachine.setMachineState(MachineStates.PAYMENT_COMPLETE);
-		sodaMachine.setMachineState(MachineStates.AWAIT_PAYMENT);
-		
 		return beverageResponse;
 	}
 
