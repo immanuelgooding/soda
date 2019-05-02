@@ -1,4 +1,4 @@
-package com.ihg.soda.api.model;
+package com.ihg.soda.api.vending.fund;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

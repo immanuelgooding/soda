@@ -4,7 +4,7 @@ package com.ihg.soda.enums;
 import java.math.BigDecimal;
 
 public enum Denominations {
-	NICKEL(0.05), DIME(0.10), QUARTER(0.25), ONE_DOLLAR_BILL(1.00);
+	NICKEL(0.05), DIME(0.10), QUARTER(0.25), BILL_1(1.00);
 	
 	private double value;
 	

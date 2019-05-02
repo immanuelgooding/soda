@@ -1,28 +1,23 @@
-package com.ihg.soda.api.model;
-
-import java.util.List;
+package com.ihg.soda.api.model.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.ihg.soda.enums.Denominations;
-import com.ihg.soda.enums.LiquidContainerTypes;
+import com.ihg.soda.enums.PackagingTypes;
 import com.ihg.soda.enums.ProductBrands;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @JsonInclude(value = Include.NON_EMPTY)
-public class BeverageRequest {
+public abstract class ProductRequest {
 	
 	private ProductBrands brand;
-	private LiquidContainerTypes containerType;
-	private List<Denominations> cash;
-	private ChargeCard chargeCard;
+	private PackagingTypes packaging;
 
 }

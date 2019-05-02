@@ -1,6 +1,6 @@
 package com.ihg.soda.api.model;
 
-import com.ihg.soda.enums.LiquidContainerTypes;
+import com.ihg.soda.enums.PackagingTypes;
 import com.ihg.soda.enums.ProductBrands;
 
 import lombok.AllArgsConstructor;
@@ -21,9 +21,9 @@ public class BeverageDetail {
 	
 	protected ProductBrands brand;
 	private Long upc;
-	private LiquidContainerTypes containerType;
+	private PackagingTypes containerType;
 	
-	public BeverageDetail(ProductBrands brand, LiquidContainerTypes containerType) {
+	public BeverageDetail(ProductBrands brand, PackagingTypes containerType) {
 		this.brand = brand;
 		this.containerType = containerType;
 	}

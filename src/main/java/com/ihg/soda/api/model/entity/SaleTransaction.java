@@ -19,8 +19,8 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.ihg.soda.api.model.BeverageDetail;
 import com.ihg.soda.api.model.FinancialExchange;
+import com.ihg.soda.api.model.ProductDetail;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,7 +34,7 @@ import lombok.ToString;
 @Builder
 @ToString
 @Entity
-public class ProductTransaction {
+public class SaleTransaction {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -56,6 +56,6 @@ public class ProductTransaction {
 	private BigDecimal changeAmount;
 	
 	@Transient
-	private BeverageDetail beverageDetail;
+	private ProductDetail productDetail;
 	
 }

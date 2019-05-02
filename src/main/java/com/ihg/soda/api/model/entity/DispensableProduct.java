@@ -1,6 +1,6 @@
 package com.ihg.soda.api.model.entity;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Embedded;
@@ -10,16 +10,18 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.ihg.soda.api.model.FinancialExchange;
-import com.ihg.soda.enums.ProductBrands;
+import com.ihg.soda.api.model.ProductDetail;
 import com.ihg.soda.enums.ProductStatuses;
+import com.ihg.soda.enums.ProductTypes;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,19 +33,14 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder
 @Entity
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class DispensableProduct {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.TABLE)
 	private Long id;
 	
-	@Column
-	@Enumerated(EnumType.STRING)
-	private ProductBrands brand;
-	
-	@Column
-	private Long upc;
+	@Embedded
+	private ProductDetail productDetail;
 	
 	@Column
 	@NotNull
@@ -55,10 +52,19 @@ public class DispensableProduct {
 	
 	@Column
 	@CreationTimestamp
-	private LocalDate createdOn;
+	private LocalDateTime createdOn;
 	
 	@Column
 	@UpdateTimestamp
-	private LocalDate updatedOn;
+	private LocalDateTime updatedOn;
+	
+	@Column
+	@Enumerated(EnumType.STRING)
+	private ProductTypes productType;
+	
+	@Transient
+	@OneToOne(optional = true)
+	@JoinColumn(name = "upc", referencedColumnName = "upc")
+	private Promotion promotion;
 	
 }

@@ -1,7 +1,7 @@
 package com.ihg.soda.enums;
 
 /**
- * Brands of beverages supported by this application
+ * Brands of products supported by this application
  *
  */
 public enum ProductBrands {

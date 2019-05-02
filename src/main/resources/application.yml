@@ -10,25 +10,26 @@ spring:
       prefix: /WEB-INF/jsp/
       suffix: .jsp
 
-soda-machine:
+vending-machine:
   currency-code: USD
   max-count: 10
   queues: 5
   
 inventory:
-  beverages:
+  products:
   - brand: coke-zero
-    container-type: can
+    packaging: can
     upc: 12345
   - brand: coke-zero
-    container-type: bottle
+    packaging: bottle
     upc: 54321
   - brand: fanta
-    container-type: bottle
+    packaging: bottle
     upc: 23456
   - brand: seven-up
-    container-type: bottle
+    packaging: bottle
     upc: 34567
   - brand: seven-up
-    container-type: can
+    packaging: can
     upc: 76543
+   
