@@ -3,6 +3,7 @@ package com.ihg.soda.api.service;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,7 @@ public class ProductRequestManager {
 		try {
 			return buildProductResponse(request.getBrand(), request.getPackaging(), coinsTotal.add(bankNotesTotal));
 		} catch (MissingProductDetailException | ProductOutOfStockException | InsufficientFundsException e) {
+			log.error("Error encountered when processing cash request", e);
 			throw new VendingMachineException(e);
 		}
 	}
@@ -58,21 +60,25 @@ public class ProductRequestManager {
 		Optional.ofNullable(chargeCard).orElseThrow(() -> new VendingMachineException("Charge card is required"));
 		try {
 			return buildProductResponse(request.getBrand(), request.getPackaging(), chargeCard);
-		} catch (MissingProductDetailException | ProductOutOfStockException | InsufficientFundsException | ChargeCardException e) {
+		} catch (MissingProductDetailException | ProductOutOfStockException | ChargeCardException e) {
+			log.error("Error encountered when processing card request", e);
 			throw new VendingMachineException(e);
 		}
 	}
 
 	private ProductResponse buildProductResponse(ProductBrands brand, PackagingTypes packaging, ChargeCard chargeCard) 
-		throws MissingProductDetailException, ProductOutOfStockException, InsufficientFundsException, ChargeCardException {
+		throws MissingProductDetailException, ProductOutOfStockException, ChargeCardException {
 		
-		String provider = chargeCard.getProvider().toUpperCase();
-		Optional.ofNullable(provider).orElseThrow(() -> new VendingMachineException("Card provider is required"));
+		String provider = chargeCard.getProvider();
+		if(null == provider || provider.trim().isEmpty()) {
+			throw new ChargeCardException("Card provider is required");
+		}
 		
-		PaymentTypes paymentType = Arrays.asList(PaymentTypes.values()).stream().filter(pt -> String.valueOf(pt).equals(provider)).findAny()
-		.orElseThrow(() -> new VendingMachineException("Charge card not supported"));
+		PaymentTypes paymentType = Arrays.asList(PaymentTypes.values()).stream()
+				.filter(pt -> String.valueOf(pt).equals(provider.toUpperCase()))
+				.findAny().orElseThrow(() -> new ChargeCardException("Charge card not supported"));
 
-		DispensableProduct stockedProduct = getStockedProduct(brand, packaging);
+		DispensableProduct stockedProduct = locateStockedProduct(brand, packaging);
 		boolean cardPaymentAccepted = vendingMachine.cardPaymentAccepted(chargeCard, stockedProduct.getPrice().getAmount());
 		if(cardPaymentAccepted) {
 			createSaleTransaction(stockedProduct, paymentType, BigDecimal.ZERO);
@@ -85,16 +91,17 @@ public class ProductRequestManager {
 	private ProductResponse buildProductResponse(ProductBrands brand, PackagingTypes packaging, BigDecimal cashTotal) 
 		throws MissingProductDetailException, ProductOutOfStockException, InsufficientFundsException {
 		
-		DispensableProduct stockedProduct = getStockedProduct(brand, packaging);
+		DispensableProduct stockedProduct = locateStockedProduct(brand, packaging);
 		processCashPayment(stockedProduct, cashTotal);
 		return buildProductResponse(stockedProduct.getProductDetail());
 	}
 	
-	private DispensableProduct getStockedProduct(ProductBrands brand, PackagingTypes packaging) 
+	private DispensableProduct locateStockedProduct(ProductBrands brand, PackagingTypes packaging) 
 		throws ProductOutOfStockException, MissingProductDetailException {
 		
 		ProductDetail productDetail = buildProductRequested(brand, packaging, Optional.empty());
-		LinkedList<DispensableProduct> productQueue = vendingMachine.getProductStock().get(productDetail);
+		Map<ProductDetail, LinkedList<DispensableProduct>> productStock = vendingMachine.getProductStock();
+		LinkedList<DispensableProduct> productQueue = productStock.get(productDetail);
 		handleProductOutOfStock(productQueue);
 		
 		return productQueue.poll();
@@ -128,8 +135,10 @@ public class ProductRequestManager {
 		BigDecimal productPrice = stockedProduct.getPrice().getAmount(); //TODO; good time to add promotion
 		if(cashTotal.compareTo(productPrice) > -1) {
 			BigDecimal difference = productPrice.subtract(cashTotal).abs();
-			vendingMachine.setChangeDue(difference);
-			vendingMachine.setMachineState(MachineStates.CHANGE_DUE);
+			if(difference.compareTo(BigDecimal.ZERO) == 1) {
+				vendingMachine.setChangeDue(difference);
+				vendingMachine.setMachineState(MachineStates.CHANGE_DUE);
+			}
 			createSaleTransaction(stockedProduct, PaymentTypes.CASH, difference);
 		} else {
 			handleInsufficientFunds(cashTotal, productPrice);
